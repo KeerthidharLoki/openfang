@@ -86,6 +86,9 @@ struct OaiMessage {
     role: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<OaiMessageContent>,
+    /// Reasoning content for thinking models (Kimi Code requires this for tool calls)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    reasoning_content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     tool_calls: Option<Vec<OaiToolCall>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -177,6 +180,7 @@ impl LlmDriver for OpenAIDriver {
             oai_messages.push(OaiMessage {
                 role: "system".to_string(),
                 content: Some(OaiMessageContent::Text(system.clone())),
+                reasoning_content: None,
                 tool_calls: None,
                 tool_call_id: None,
             });
@@ -190,6 +194,7 @@ impl LlmDriver for OpenAIDriver {
                         oai_messages.push(OaiMessage {
                             role: "system".to_string(),
                             content: Some(OaiMessageContent::Text(text.clone())),
+                            reasoning_content: None,
                             tool_calls: None,
                             tool_call_id: None,
                         });
@@ -199,6 +204,7 @@ impl LlmDriver for OpenAIDriver {
                     oai_messages.push(OaiMessage {
                         role: "user".to_string(),
                         content: Some(OaiMessageContent::Text(text.clone())),
+                        reasoning_content: None,
                         tool_calls: None,
                         tool_call_id: None,
                     });
@@ -207,6 +213,7 @@ impl LlmDriver for OpenAIDriver {
                     oai_messages.push(OaiMessage {
                         role: "assistant".to_string(),
                         content: Some(OaiMessageContent::Text(text.clone())),
+                        reasoning_content: None,
                         tool_calls: None,
                         tool_call_id: None,
                     });
@@ -228,6 +235,7 @@ impl LlmDriver for OpenAIDriver {
                                     content: Some(OaiMessageContent::Text(
                                         if content.is_empty() { "(empty)".to_string() } else { content.clone() }
                                     )),
+                                    reasoning_content: None,
                                     tool_calls: None,
                                     tool_call_id: Some(tool_use_id.clone()),
                                 });
@@ -250,6 +258,7 @@ impl LlmDriver for OpenAIDriver {
                         oai_messages.push(OaiMessage {
                             role: "user".to_string(),
                             content: Some(OaiMessageContent::Parts(parts)),
+                            reasoning_content: None,
                             tool_calls: None,
                             tool_call_id: None,
                         });
@@ -291,6 +300,8 @@ impl LlmDriver for OpenAIDriver {
                         } else {
                             Some(OaiMessageContent::Text(text_parts.join("")))
                         },
+                        // Kimi Code requires reasoning_content when tool_calls are present
+                        reasoning_content: if has_tool_calls { Some(String::new()) } else { None },
                         tool_calls: if tool_calls.is_empty() {
                             None
                         } else {
@@ -552,6 +563,7 @@ impl LlmDriver for OpenAIDriver {
             oai_messages.push(OaiMessage {
                 role: "system".to_string(),
                 content: Some(OaiMessageContent::Text(system.clone())),
+                reasoning_content: None,
                 tool_calls: None,
                 tool_call_id: None,
             });
@@ -564,6 +576,7 @@ impl LlmDriver for OpenAIDriver {
                         oai_messages.push(OaiMessage {
                             role: "system".to_string(),
                             content: Some(OaiMessageContent::Text(text.clone())),
+                            reasoning_content: None,
                             tool_calls: None,
                             tool_call_id: None,
                         });
@@ -573,6 +586,7 @@ impl LlmDriver for OpenAIDriver {
                     oai_messages.push(OaiMessage {
                         role: "user".to_string(),
                         content: Some(OaiMessageContent::Text(text.clone())),
+                        reasoning_content: None,
                         tool_calls: None,
                         tool_call_id: None,
                     });
@@ -581,6 +595,7 @@ impl LlmDriver for OpenAIDriver {
                     oai_messages.push(OaiMessage {
                         role: "assistant".to_string(),
                         content: Some(OaiMessageContent::Text(text.clone())),
+                        reasoning_content: None,
                         tool_calls: None,
                         tool_call_id: None,
                     });
@@ -598,6 +613,7 @@ impl LlmDriver for OpenAIDriver {
                                 content: Some(OaiMessageContent::Text(
                                     if content.is_empty() { "(empty)".to_string() } else { content.clone() }
                                 )),
+                                reasoning_content: None,
                                 tool_calls: None,
                                 tool_call_id: Some(tool_use_id.clone()),
                             });
@@ -636,6 +652,8 @@ impl LlmDriver for OpenAIDriver {
                         } else {
                             Some(OaiMessageContent::Text(text_parts.join("")))
                         },
+                        // Kimi Code requires reasoning_content when tool_calls are present
+                        reasoning_content: if has_tool_calls { Some(String::new()) } else { None },
                         tool_calls: if tool_calls_out.is_empty() {
                             None
                         } else {

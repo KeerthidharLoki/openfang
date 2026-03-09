@@ -189,6 +189,14 @@ const PROVIDERS: &[ProviderInfo] = &[
         hint: "",
     },
     ProviderInfo {
+        name: "kimi-code",
+        display: "Kimi Code",
+        env_var: "KIMI_API_KEY",
+        default_model: "kimi-for-coding",
+        needs_key: true,
+        hint: "coding specialist",
+    },
+    ProviderInfo {
         name: "ollama",
         display: "Ollama",
         env_var: "OLLAMA_API_KEY",

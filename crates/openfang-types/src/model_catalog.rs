@@ -51,7 +51,7 @@ pub const VOLCENGINE_CODING_BASE_URL: &str = "https://ark.cn-beijing.volces.com/
 pub const BEDROCK_BASE_URL: &str = "https://bedrock-runtime.us-east-1.amazonaws.com";
 
 // ── Kimi Code ─────────────────────────────────────────────────────
-pub const KIMI_CODE_BASE_URL: &str = "https://api.kimi.com/coding/";
+pub const KIMI_CODE_BASE_URL: &str = "https://api.kimi.com/coding/v1";
 
 /// A model's capability tier.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

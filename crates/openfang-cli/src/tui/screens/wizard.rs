@@ -116,6 +116,12 @@ const PROVIDERS: &[ProviderInfo] = &[
         needs_key: true,
     },
     ProviderInfo {
+        name: "kimi-code",
+        env_var: "KIMI_API_KEY",
+        default_model: "kimi-for-coding",
+        needs_key: true,
+    },
+    ProviderInfo {
         name: "zhipu",
         env_var: "ZHIPU_API_KEY",
         default_model: "glm-4-plus",

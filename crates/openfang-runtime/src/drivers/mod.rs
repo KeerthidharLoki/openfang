@@ -14,12 +14,11 @@ pub mod openai;
 use crate::llm_driver::{DriverConfig, LlmDriver, LlmError};
 use openfang_types::model_catalog::{
     AI21_BASE_URL, ANTHROPIC_BASE_URL, CEREBRAS_BASE_URL, COHERE_BASE_URL, DEEPSEEK_BASE_URL,
-    FIREWORKS_BASE_URL, GEMINI_BASE_URL, GROQ_BASE_URL, HUGGINGFACE_BASE_URL, LEMONADE_BASE_URL,
-    LMSTUDIO_BASE_URL,
-    MINIMAX_BASE_URL, MISTRAL_BASE_URL, MOONSHOT_BASE_URL, OLLAMA_BASE_URL, OPENAI_BASE_URL,
-    OPENROUTER_BASE_URL, PERPLEXITY_BASE_URL, QIANFAN_BASE_URL, QWEN_BASE_URL,
-    REPLICATE_BASE_URL, SAMBANOVA_BASE_URL, TOGETHER_BASE_URL, VENICE_BASE_URL, VLLM_BASE_URL,
-    VOLCENGINE_BASE_URL, VOLCENGINE_CODING_BASE_URL, XAI_BASE_URL, ZAI_BASE_URL,
+    FIREWORKS_BASE_URL, GEMINI_BASE_URL, GROQ_BASE_URL, HUGGINGFACE_BASE_URL, KIMI_CODE_BASE_URL,
+    LEMONADE_BASE_URL, LMSTUDIO_BASE_URL, MINIMAX_BASE_URL, MISTRAL_BASE_URL, MOONSHOT_BASE_URL,
+    OLLAMA_BASE_URL, OPENAI_BASE_URL, OPENROUTER_BASE_URL, PERPLEXITY_BASE_URL, QIANFAN_BASE_URL,
+    QWEN_BASE_URL, REPLICATE_BASE_URL, SAMBANOVA_BASE_URL, TOGETHER_BASE_URL, VENICE_BASE_URL,
+    VLLM_BASE_URL, VOLCENGINE_BASE_URL, VOLCENGINE_CODING_BASE_URL, XAI_BASE_URL, ZAI_BASE_URL,
     ZAI_CODING_BASE_URL, ZHIPU_BASE_URL, ZHIPU_CODING_BASE_URL,
 };
 use std::sync::Arc;
@@ -205,6 +204,11 @@ fn provider_defaults(provider: &str) -> Option<ProviderDefaults> {
             api_key_env: "VENICE_API_KEY",
             key_required: true,
         }),
+        "kimi-code" => Some(ProviderDefaults {
+            base_url: KIMI_CODE_BASE_URL,
+            api_key_env: "KIMI_API_KEY",
+            key_required: true,
+        }),
         _ => None,
     }
 }
@@ -231,6 +235,7 @@ fn provider_defaults(provider: &str) -> Option<ProviderDefaults> {
 /// - `huggingface` — Hugging Face Inference API
 /// - `xai` — xAI (Grok)
 /// - `replicate` — Replicate
+/// - `kimi-code` — Kimi Code (requires User-Agent header)
 /// - Any custom provider with `base_url` set uses OpenAI-compatible format
 pub fn create_driver(config: &DriverConfig) -> Result<Arc<dyn LlmDriver>, LlmError> {
     let provider = config.provider.as_str();
@@ -293,6 +298,25 @@ pub fn create_driver(config: &DriverConfig) -> Result<Arc<dyn LlmDriver>, LlmErr
     if provider == "claude-code" {
         let cli_path = config.base_url.clone();
         return Ok(Arc::new(claude_code::ClaudeCodeDriver::new(cli_path)));
+    }
+
+    // Kimi Code — requires special User-Agent header for whitelist bypass
+    if provider == "kimi-code" {
+        let api_key = config
+            .api_key
+            .clone()
+            .or_else(|| std::env::var("KIMI_API_KEY").ok())
+            .ok_or_else(|| {
+                LlmError::MissingApiKey("Set KIMI_API_KEY environment variable".to_string())
+            })?;
+        let base_url = config
+            .base_url
+            .clone()
+            .unwrap_or_else(|| KIMI_CODE_BASE_URL.to_string());
+        return Ok(Arc::new(openai::OpenAIDriver::new(api_key, base_url)
+            .with_extra_headers(vec![
+                ("User-Agent".to_string(), "claude-code/0.1.0".to_string())
+            ])));
     }
 
     // GitHub Copilot — wraps OpenAI-compatible driver with automatic token exchange.
@@ -451,6 +475,7 @@ pub fn known_providers() -> &'static [&'static str] {
         "qianfan",
         "volcengine",
         "venice",
+        "kimi-code",
         "codex",
         "claude-code",
     ]

@@ -1,0 +1,52 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:  # Manual trigger
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-windows:
+    name: Build Windows CLI
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: windows-cli-build
+
+      - name: Build CLI
+        run: cargo build --release --target x86_64-pc-windows-msvc --bin openfang
+
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "target/x86_64-pc-windows-msvc/release/openfang.exe" -DestinationPath "openfang-windows-x64.zip"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openfang-windows-x64
+          path: openfang-windows-x64.zip
+          retention-days: 7
+
+      - name: Show Build Info
+        shell: pwsh
+        run: |
+          Write-Host "✅ Build Complete!"
+          Write-Host ""
+          Write-Host "Binary location: target/x86_64-pc-windows-msvc/release/openfang.exe"
+          Write-Host ""
+          Get-Item "target/x86_64-pc-windows-msvc/release/openfang.exe" | Select-Object Name, Length, LastWriteTime

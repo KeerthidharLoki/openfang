@@ -4771,7 +4771,7 @@ fn infer_provider_from_model(model: &str) -> Option<String> {
             | "cohere" | "xai" | "ollama" | "together" | "fireworks" | "perplexity"
             | "cerebras" | "sambanova" | "replicate" | "huggingface" | "ai21" | "codex"
             | "claude-code" | "copilot" | "github-copilot" | "qwen" | "zhipu" | "zai" | "moonshot"
-            | "openrouter" | "volcengine" | "doubao" | "dashscope" => {
+            | "openrouter" | "volcengine" | "doubao" | "dashscope" | "kimi-code" => {
                 return Some(prefix.to_string());
             }
             _ => {}

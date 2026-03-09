@@ -7,8 +7,8 @@ use openfang_types::model_catalog::{
     AuthStatus, ModelCatalogEntry, ModelTier, ProviderInfo, AI21_BASE_URL, ANTHROPIC_BASE_URL,
     BEDROCK_BASE_URL, CEREBRAS_BASE_URL, COHERE_BASE_URL, DEEPSEEK_BASE_URL, FIREWORKS_BASE_URL,
     GEMINI_BASE_URL, GITHUB_COPILOT_BASE_URL, GROQ_BASE_URL, HUGGINGFACE_BASE_URL,
-    LMSTUDIO_BASE_URL, MINIMAX_BASE_URL, MISTRAL_BASE_URL, MOONSHOT_BASE_URL, OLLAMA_BASE_URL,
-    LEMONADE_BASE_URL, OPENAI_BASE_URL, OPENROUTER_BASE_URL, PERPLEXITY_BASE_URL,
+    KIMI_CODE_BASE_URL, LMSTUDIO_BASE_URL, MINIMAX_BASE_URL, MISTRAL_BASE_URL, MOONSHOT_BASE_URL,
+    OLLAMA_BASE_URL, LEMONADE_BASE_URL, OPENAI_BASE_URL, OPENROUTER_BASE_URL, PERPLEXITY_BASE_URL,
     QIANFAN_BASE_URL, QWEN_BASE_URL,
     REPLICATE_BASE_URL, SAMBANOVA_BASE_URL, TOGETHER_BASE_URL, VENICE_BASE_URL, VLLM_BASE_URL,
     VOLCENGINE_BASE_URL, VOLCENGINE_CODING_BASE_URL, XAI_BASE_URL, ZAI_BASE_URL,
@@ -722,6 +722,16 @@ fn builtin_providers() -> Vec<ProviderInfo> {
             base_url: String::new(),
             key_required: false,
             auth_status: AuthStatus::NotRequired,
+            model_count: 0,
+        },
+        // ── Kimi Code ────────────────────────────────────────────────
+        ProviderInfo {
+            id: "kimi-code".into(),
+            display_name: "Kimi Code".into(),
+            api_key_env: "KIMI_API_KEY".into(),
+            base_url: KIMI_CODE_BASE_URL.into(),
+            key_required: true,
+            auth_status: AuthStatus::Missing,
             model_count: 0,
         },
     ]
@@ -2926,6 +2936,23 @@ fn builtin_models() -> Vec<ModelCatalogEntry> {
             aliases: vec!["kimi-k2.5".into()],
         },
         // ══════════════════════════════════════════════════════════════
+        // Kimi Code (1)
+        // ══════════════════════════════════════════════════════════════
+        ModelCatalogEntry {
+            id: "kimi-for-coding".into(),
+            display_name: "Kimi for Coding".into(),
+            provider: "kimi-code".into(),
+            tier: ModelTier::Smart,
+            context_window: 131_072,
+            max_output_tokens: 16_384,
+            input_cost_per_m: 2.00,
+            output_cost_per_m: 8.00,
+            supports_tools: true,
+            supports_vision: false,
+            supports_streaming: true,
+            aliases: vec![],
+        },
+        // ══════════════════════════════════════════════════════════════
         // Baidu Qianfan / ERNIE (3)
         // ══════════════════════════════════════════════════════════════
         ModelCatalogEntry {
@@ -3281,7 +3308,7 @@ mod tests {
     #[test]
     fn test_catalog_has_providers() {
         let catalog = ModelCatalog::new();
-        assert_eq!(catalog.list_providers().len(), 36);
+        assert_eq!(catalog.list_providers().len(), 37);
     }
 
     #[test]

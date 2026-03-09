@@ -572,9 +572,11 @@ mod tests {
         assert!(providers.contains(&"zhipu_coding"));
         assert!(providers.contains(&"qianfan"));
         assert!(providers.contains(&"volcengine"));
+        assert!(providers.contains(&"venice"));
+        assert!(providers.contains(&"kimi-code"));
         assert!(providers.contains(&"codex"));
         assert!(providers.contains(&"claude-code"));
-        assert_eq!(providers.len(), 31);
+        assert_eq!(providers.len(), 33);
     }
 
     #[test]

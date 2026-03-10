@@ -78,6 +78,9 @@ pub struct CompletionResponse {
     pub tool_calls: Vec<ToolCall>,
     /// Token usage statistics.
     pub usage: TokenUsage,
+    /// Reasoning content from thinking models (Kimi Code requires this for tool calls).
+    /// This is stored separately to preserve it in conversation history.
+    pub reasoning_content: Option<String>,
 }
 
 impl CompletionResponse {
@@ -198,6 +201,7 @@ mod tests {
             stop_reason: StopReason::EndTurn,
             tool_calls: vec![],
             usage: TokenUsage::default(),
+            reasoning_content: None,
         };
         assert_eq!(response.text(), "Hello world!");
     }
@@ -262,6 +266,7 @@ mod tests {
                         input_tokens: 5,
                         output_tokens: 3,
                     },
+                    reasoning_content: None,
                 })
             }
         }

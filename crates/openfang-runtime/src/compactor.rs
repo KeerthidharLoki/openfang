@@ -773,6 +773,7 @@ mod tests {
                         input_tokens: 100,
                         output_tokens: 50,
                     },
+                    reasoning_content: None,
                 })
             }
         }
@@ -834,6 +835,7 @@ mod tests {
                         input_tokens: 100,
                         output_tokens: 50,
                     },
+                    reasoning_content: None,
                 })
             }
         }
@@ -925,6 +927,7 @@ mod tests {
                         input_tokens: 500,
                         output_tokens: 100,
                     },
+                    reasoning_content: None,
                 })
             }
         }
@@ -1120,6 +1123,7 @@ mod tests {
                         input_tokens: 50,
                         output_tokens: 20,
                     },
+                    reasoning_content: None,
                 })
             }
         }

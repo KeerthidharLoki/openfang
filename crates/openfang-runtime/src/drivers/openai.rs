@@ -162,6 +162,9 @@ struct OaiChoice {
 #[derive(Debug, Deserialize)]
 struct OaiResponseMessage {
     content: Option<String>,
+    /// Reasoning content from thinking models (Kimi Code requires this for tool calls)
+    #[serde(default)]
+    reasoning_content: Option<String>,
     tool_calls: Option<Vec<OaiToolCall>>,
 }
 
@@ -268,6 +271,7 @@ impl LlmDriver for OpenAIDriver {
                 (Role::Assistant, MessageContent::Blocks(blocks)) => {
                     let mut text_parts = Vec::new();
                     let mut tool_calls = Vec::new();
+                    let mut thinking_content = String::new();
                     for block in blocks {
                         match block {
                             ContentBlock::Text { text } => text_parts.push(text.clone()),
@@ -281,11 +285,14 @@ impl LlmDriver for OpenAIDriver {
                                     },
                                 });
                             }
-                            ContentBlock::Thinking { .. } => {}
+                            ContentBlock::Thinking { thinking } => {
+                                thinking_content = thinking.clone();
+                            }
                             _ => {}
                         }
                     }
                     let has_tool_calls = !tool_calls.is_empty();
+                    let has_thinking = !thinking_content.is_empty();
                     oai_messages.push(OaiMessage {
                         role: "assistant".to_string(),
                         // ZHIPU (GLM) rejects assistant messages where content is
@@ -302,7 +309,12 @@ impl LlmDriver for OpenAIDriver {
                             Some(OaiMessageContent::Text(text_parts.join("")))
                         },
                         // Kimi Code requires reasoning_content when tool_calls are present
-                        reasoning_content: if has_tool_calls { Some(String::new()) } else { None },
+                        // Use stored thinking content if available, otherwise empty string
+                        reasoning_content: if has_tool_calls || has_thinking {
+                            Some(thinking_content)
+                        } else {
+                            None
+                        },
                         tool_calls: if tool_calls.is_empty() {
                             None
                         } else {
@@ -507,6 +519,10 @@ impl LlmDriver for OpenAIDriver {
             let mut content = Vec::new();
             let mut tool_calls = Vec::new();
 
+            // Capture reasoning_content for Kimi Code (required for tool call messages)
+            // Capture reasoning_content for Kimi Code (required for tool call messages)
+            let reasoning_content = choice.message.reasoning_content.clone();
+
             if let Some(text) = choice.message.content {
                 if !text.is_empty() {
                     content.push(ContentBlock::Text { text });
@@ -556,6 +572,7 @@ impl LlmDriver for OpenAIDriver {
                 stop_reason,
                 tool_calls,
                 usage,
+                reasoning_content,
             });
         }
 
@@ -1055,6 +1072,7 @@ impl LlmDriver for OpenAIDriver {
                 stop_reason,
                 tool_calls,
                 usage,
+                reasoning_content: None,
             });
         }
 
@@ -1151,6 +1169,7 @@ fn parse_groq_failed_tool_call(body: &str) -> Option<CompletionResponse> {
                     input_tokens: 0,
                     output_tokens: 0,
                 },
+                reasoning_content: None,
             });
         }
         return None;
@@ -1164,6 +1183,7 @@ fn parse_groq_failed_tool_call(body: &str) -> Option<CompletionResponse> {
             input_tokens: 0,
             output_tokens: 0,
         },
+        reasoning_content: None,
     })
 }
 

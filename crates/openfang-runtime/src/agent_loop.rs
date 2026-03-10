@@ -513,7 +513,16 @@ pub async fn run_agent_loop(
                 any_tools_executed = true;
 
                 // Execute tool calls
-                let assistant_blocks = response.content.clone();
+                let mut assistant_blocks = response.content.clone();
+
+                // Add reasoning_content as Thinking block for Kimi Code and other thinking models
+                if let Some(ref reasoning) = response.reasoning_content {
+                    if !reasoning.is_empty() {
+                        assistant_blocks.insert(0, ContentBlock::Thinking {
+                            thinking: reasoning.clone(),
+                        });
+                    }
+                }
 
                 // Add assistant message with tool use blocks
                 session.messages.push(Message {
@@ -1442,7 +1451,16 @@ pub async fn run_agent_loop_streaming(
                 consecutive_max_tokens = 0;
                 any_tools_executed = true;
 
-                let assistant_blocks = response.content.clone();
+                let mut assistant_blocks = response.content.clone();
+
+                // Add reasoning_content as Thinking block for Kimi Code and other thinking models
+                if let Some(ref reasoning) = response.reasoning_content {
+                    if !reasoning.is_empty() {
+                        assistant_blocks.insert(0, ContentBlock::Thinking {
+                            thinking: reasoning.clone(),
+                        });
+                    }
+                }
 
                 session.messages.push(Message {
                     role: Role::Assistant,
@@ -2122,6 +2140,7 @@ mod tests {
                         input_tokens: 10,
                         output_tokens: 5,
                     },
+                    reasoning_content: None,
                 })
             } else {
                 // Second call: LLM returns EndTurn with EMPTY text (the bug)
@@ -2133,6 +2152,7 @@ mod tests {
                         input_tokens: 10,
                         output_tokens: 0,
                     },
+                    reasoning_content: None,
                 })
             }
         }
@@ -2156,6 +2176,7 @@ mod tests {
                     input_tokens: 10,
                     output_tokens: 0,
                 },
+                reasoning_content: None,
             })
         }
     }
@@ -2179,6 +2200,7 @@ mod tests {
                     input_tokens: 10,
                     output_tokens: 8,
                 },
+                reasoning_content: None,
             })
         }
     }
@@ -2414,6 +2436,7 @@ mod tests {
                         input_tokens: 10,
                         output_tokens: 0,
                     },
+                    reasoning_content: None,
                 })
             } else {
                 // Second call (retry): normal response
@@ -2427,6 +2450,7 @@ mod tests {
                         input_tokens: 15,
                         output_tokens: 8,
                     },
+                    reasoning_content: None,
                 })
             }
         }
@@ -2450,6 +2474,7 @@ mod tests {
                     input_tokens: 10,
                     output_tokens: 0,
                 },
+                reasoning_content: None,
             })
         }
     }
@@ -2971,6 +2996,7 @@ mod tests {
                         input_tokens: 20,
                         output_tokens: 15,
                     },
+                    reasoning_content: None,
                 })
             } else {
                 // After tool result, return normal response
@@ -2984,6 +3010,7 @@ mod tests {
                         input_tokens: 30,
                         output_tokens: 12,
                     },
+                    reasoning_content: None,
                 })
             }
         }

@@ -147,6 +147,7 @@ mod tests {
                     input_tokens: 10,
                     output_tokens: 5,
                 },
+                reasoning_content: None,
             })
         }
     }

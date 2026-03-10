@@ -309,9 +309,13 @@ impl LlmDriver for OpenAIDriver {
                             Some(OaiMessageContent::Text(text_parts.join("")))
                         },
                         // Kimi Code requires reasoning_content when tool_calls are present
-                        // Use stored thinking content if available, otherwise empty string
+                        // Use stored thinking content if available, otherwise placeholder
                         reasoning_content: if has_tool_calls || has_thinking {
-                            Some(thinking_content)
+                            if thinking_content.is_empty() {
+                                Some("Using tools to assist.".to_string())
+                            } else {
+                                Some(thinking_content)
+                            }
                         } else {
                             None
                         },
@@ -684,7 +688,11 @@ impl LlmDriver for OpenAIDriver {
                             Some(OaiMessageContent::Text(text_parts.join("")))
                         },
                         // Kimi Code requires reasoning_content when tool_calls are present
-                        reasoning_content: if has_tool_calls { Some(String::new()) } else { None },
+                        reasoning_content: if has_tool_calls {
+                            Some("Using tools to assist.".to_string())
+                        } else {
+                            None
+                        },
                         tool_calls: if tool_calls_out.is_empty() {
                             None
                         } else {

@@ -365,6 +365,14 @@ impl LlmDriver for OpenAIDriver {
                 .header("content-type", "application/json")
                 .json(&oai_request);
 
+            // DEBUG: Log the actual JSON payload for Kimi Code troubleshooting
+            if self.base_url.contains("kimi") {
+                match serde_json::to_string_pretty(&oai_request) {
+                    Ok(json) => tracing::info!("KIMI_CODE_REQUEST: {}", json),
+                    Err(e) => tracing::warn!("Failed to serialize Kimi request: {}", e),
+                }
+            }
+
             if !self.api_key.as_str().is_empty() {
                 req_builder = req_builder
                     .header("authorization", format!("Bearer {}", self.api_key.as_str()));
@@ -393,6 +401,11 @@ impl LlmDriver for OpenAIDriver {
 
             if !resp.status().is_success() {
                 let body = resp.text().await.unwrap_or_default();
+
+                // DEBUG: Log Kimi Code error responses for troubleshooting
+                if self.base_url.contains("kimi") {
+                    tracing::error!("KIMI_CODE_ERROR: status={}, body={}", status, body);
+                }
 
                 // Groq "tool_use_failed": model generated tool call in XML format.
                 // Parse the failed_generation and convert to a proper tool call response.
@@ -718,6 +731,14 @@ impl LlmDriver for OpenAIDriver {
                 .header("content-type", "application/json")
                 .json(&oai_request);
 
+            // DEBUG: Log the actual JSON payload for Kimi Code troubleshooting
+            if self.base_url.contains("kimi") {
+                match serde_json::to_string_pretty(&oai_request) {
+                    Ok(json) => tracing::info!("KIMI_CODE_STREAM_REQUEST: {}", json),
+                    Err(e) => tracing::warn!("Failed to serialize Kimi stream request: {}", e),
+                }
+            }
+
             if !self.api_key.as_str().is_empty() {
                 req_builder = req_builder
                     .header("authorization", format!("Bearer {}", self.api_key.as_str()));
@@ -746,6 +767,11 @@ impl LlmDriver for OpenAIDriver {
 
             if !resp.status().is_success() {
                 let body = resp.text().await.unwrap_or_default();
+
+                // DEBUG: Log Kimi Code error responses for troubleshooting
+                if self.base_url.contains("kimi") {
+                    tracing::error!("KIMI_CODE_STREAM_ERROR: status={}, body={}", status, body);
+                }
 
                 // Groq "tool_use_failed": parse and recover (streaming path)
                 if status == 400 && body.contains("tool_use_failed") {

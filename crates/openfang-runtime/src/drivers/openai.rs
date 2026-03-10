@@ -87,6 +87,7 @@ struct OaiMessage {
     #[serde(skip_serializing_if = "Option::is_none")]
     content: Option<OaiMessageContent>,
     /// Reasoning content for thinking models (Kimi Code requires this for tool calls)
+    /// Cache-bust: Force rebuild to include this field - Build #7
     #[serde(skip_serializing_if = "Option::is_none")]
     reasoning_content: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

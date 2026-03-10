@@ -2016,6 +2016,73 @@ fn recover_text_tool_calls(text: &str, available_tools: &[ToolDefinition]) -> Ve
         }
     }
 
+    // Pattern 6: Markdown code block with tool language specifier (Kimi Code variant)
+    // Matches: ```tool\nshell_exec\ncommand: ls -la\n```
+    {
+        let tool_block_pattern = "```tool";
+        let mut search_from = 0;
+        while let Some(start) = text[search_from..].find(tool_block_pattern) {
+            let abs_start = search_from + start;
+            let after_marker = abs_start + tool_block_pattern.len();
+
+            // Find the content until closing ```
+            let content_start = if text[after_marker..].starts_with('\n') {
+                after_marker + 1
+            } else {
+                after_marker
+            };
+
+            let Some(close_offset) = text[content_start..].find("```") else {
+                search_from = after_marker;
+                continue;
+            };
+
+            let block_content = &text[content_start..content_start + close_offset];
+            search_from = content_start + close_offset + "```".len();
+
+            // Parse the content: first line is tool name, rest are key: value pairs
+            let lines: Vec<&str> = block_content.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
+            if lines.is_empty() {
+                continue;
+            }
+
+            let tool_name = lines[0].trim();
+            if !tool_names.contains(&tool_name) {
+                continue;
+            }
+
+            // Parse key: value pairs into a JSON object
+            let mut params = serde_json::Map::new();
+            for line in &lines[1..] {
+                if let Some(colon_pos) = line.find(':') {
+                    let key = line[..colon_pos].trim();
+                    let value = line[colon_pos + 1..].trim();
+                    // Try to parse as JSON, otherwise store as string
+                    if let Ok(json_val) = serde_json::from_str::<serde_json::Value>(value) {
+                        params.insert(key.to_string(), json_val);
+                    } else {
+                        params.insert(key.to_string(), serde_json::Value::String(value.to_string()));
+                    }
+                }
+            }
+
+            let input = serde_json::Value::Object(params);
+
+            // Avoid duplicates
+            if !calls.iter().any(|c| c.name == tool_name && c.input == input) {
+                info!(
+                    tool = tool_name,
+                    "Recovered tool call from markdown tool block (Kimi Code)"
+                );
+                calls.push(ToolCall {
+                    id: format!("recovered_{}", uuid::Uuid::new_v4()),
+                    name: tool_name.to_string(),
+                    input,
+                });
+            }
+        }
+    }
+
     calls
 }
 
